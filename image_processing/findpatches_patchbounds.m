@@ -1,5 +1,14 @@
 %%%% find threshold intensity for patches
-%%% updated 18/9/27 on thermaltake
+%%% updated 2020/5/13 on thermaltake
+
+% if roi pixels are on the border, add a 1-pixel buffer on all borders to avoid potential errors with quantile analysis
+if any(find(roi(:,1))) || any(find(roi(:,end))) || any(find(roi(1,:))) || any(find(roi(end,:))) 
+    roi(1,:) = false;
+    roi(end,:) = false;
+    roi(:,1) = false;
+    roi(:,end) = false;
+end
+patchdata.roi = roi;
 
 %%% blurring
 H = fspecial('disk',diskblurradius_pix); %%% create filter; arguments set blur radius
@@ -48,13 +57,13 @@ switch pars.threshMode
         patchdata.quant_levels_img = quant_levels_img;  
     case 'fractionOfPopulation'
         roisorted = sort(imroivals);
-        threshpoint = max([1, length(roisorted) - round(fracPixSuperthresh * length(roisorted))]);
+        threshpoint = max([1, length(roisorted) - round(pars.fracPixSuperthresh * length(roisorted))]);
         thresh = roisorted(threshpoint); 
         patchdata.threshpoint = threshpoint;
         patchdata.threshFraction_fractionOfMax = double(thresh)/double(max(roisorted)); % convert for comparison with other threshmode
         threshinc = maxInRoi * pars.raisethresh_increment;
     case 'fractionOfMaxMinusMin'
-        thresh =  minInRoi + [maxInRoi-minInRoi] * threshFraction;
+        thresh =  minInRoi + [maxInRoi-minInRoi] * pars.threshFraction;
         threshinc = [maxInRoi-minInRoi] * pars.raisethresh_increment;
     case 'fractionOfMax'
         thresh =  maxInRoi * threshFraction;
@@ -72,13 +81,6 @@ end
 %%% optionally include non-roi pixels that are completely contained within a quantile/patch as part of the containing region
 %%%%%%%  ... allows us to analyze cells that fall on blood vessels
 if pars.include_interior_nonroi_in_roi && nnz(~roi)>0 % only run this step if there are pixels marked as non-roi
-    if any(find(roi(:,1))) || any(find(roi(:,end))) || any(find(roi(1,:))) || any(find(roi(end,:))) % if roi pixels are on the border
-        checkinput = input('\npars.include_interior_nonroi_in_roi==true is only designed to work with a fully non-roi border; continue? ','s');
-        if ~strcmp(checkinput,'y')
-            error('quitting function')
-        end
-        warning('check patch border assignment for errors')
-    end
     if strcmp(pars.threshMode,'intensityQuantiles') % if we need to identify a quantile for the nonroi spot
         [nan_bnds, nan_lm] = bwboundaries(roi);
         for iblob = 1:max(max(nan_lm))
@@ -108,7 +110,7 @@ if pars.include_interior_nonroi_in_roi && nnz(~roi)>0 % only run this step if th
         
     %%% optionally include non-roi pixels that are completely contained within a quantile/patch as part of the containing region
     elseif ~strcmp(pars.threshMode,'intensityQuantiles') % if we don't need to identify a quantile for the nonroi spot
-        error('check that this code section still makes sense')
+%         error('check that this code section still makes sense')
         [~, lm, ~, adj] = bwboundaries(logical(labelmat_allsizes));
         [inner_blob, surrounding_patch] = find(adj);
         for i = 1:length(inner_blob)

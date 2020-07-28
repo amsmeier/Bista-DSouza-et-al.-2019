@@ -31,7 +31,7 @@ if ~isempty(comparison_file)
     end
     baselineFile = vardefault('baselineFile',[]);
     permutation_test = permutation_test_patches(patchdata.patchimage, comparison_file, roifile, baselineFile, zoom, scope, permutation_pars);
-    permutation_test
+    permutation_test;
     allresults.permutation_test = permutation_test;
     
     % perimeter test

@@ -119,3 +119,4 @@ patchResults.minAreaPatch_pix = minAreaPatch_pix;
 patchResults.zoom = zoom;
 patchResults.xyPixelsPerUM = xyPixelsPerUM;
 patchResults.npatches = npatches; 
+patchResults.baseline = vardefault('baseline',0);

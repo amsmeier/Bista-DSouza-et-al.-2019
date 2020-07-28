@@ -1,5 +1,5 @@
  %%% get center-to-nearest-center spacing of w points in a bw image
- % last updated 18/05/10 on thermaltake
+ % last updated 19/12/15 on thermaltake
  
  function [analysis] = patchDensity(patchesFile,roifile,zoom,scope)
  
@@ -36,7 +36,7 @@ distable.distum = [1/pixPerUm(zoom,scope)] * distable.distpix;
 analysis.meandistum = mean(distable.distum);
 
 % density recovery profile
-patch_centers_image = false(size(patchimage));
+patch_centers_image = sparse(false(size(patchimage)));
 patchcentersind = sub2ind(size(patchimage),round(patchcentersYX(:,1)),round(patchcentersYX(:,2)));
 patch_centers_image(patchcentersind) = true;
 nintervals = (length(densrecov_intervals_um));

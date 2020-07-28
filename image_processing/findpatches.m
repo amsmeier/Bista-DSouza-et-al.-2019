@@ -5,14 +5,14 @@
             %       diskblurradius_um
             %       threshMode
             %       threshFraction
-%%% updated 18/9/19 on thermaltake
+%%% updated 2020/5/19 on thermaltake
  
  function patchdata = findpatches(imfile,roifile,zoom,scope,pars)
 pars = vardefault('pars',struct);
 
 %% get pars, set defaults
-pars.minAreaPatch_squm = field_default(pars,'minAreaPatch_squm',0);  % min area in square microns a blob must contain to be considered a pat
-%     minAreaPatch_squm = 236; % 236 seems best for subject 09060 for replicating patch density values from ji et al 2015
+pars.minAreaPatch_squm = field_default(pars,'minAreaPatch_squm',0);  % min area in square microns a blob must contain to be considered a patch
+%     minAreaPatch_squm = 236; % 236 seems best for subject 09060 for replicating patch density values from ji et al 2015 (patches top 2/6 quantiles)
 pars.maxAreaPatch_squm = field_default(pars,'maxAreaPatch_squm',inf);
 % pars.maxAreaPatch_squm = field_default(pars,'maxAreaPatch_squm',7000);
 % pars.maxAreaPatch_squm = field_default(pars,'maxAreaPatch_squm',2300);% 2300 seems best for subject 09060 for replicating patch density values from ji et al 2015
@@ -65,7 +65,6 @@ elseif ~exist('roifile','var') || isempty(roifile) % analyze all pixels
     patchdata.roifile = [];
     roi = true(size(im));
 end
-patchdata.roi = roi;
 
 if any(~(size(roi) == size(im)))
     error('image and roi file dimension mismatch')
@@ -138,6 +137,10 @@ if pars.minAreaPatch_squm > 0
     bnds_small = {};
     bnds_large_image = false(size(im));
     bnds_small_image = false(size(im));
+    if ~exist('blobs_labels','var')
+        blobs_labels = unique(labelmat_allsizes);
+        blobs_labels(blobs_labels==0) = [];
+    end
     for i = 1:length(bnds_allsizes)
         thisbloblabel = blobs_labels(i);
         blobnpix = length(find(labelmat_allsizes==thisbloblabel));
@@ -159,7 +162,7 @@ if pars.minAreaPatch_squm > 0
         end
     end
     patchimage = logical(patchimage_labeled);
-    patchdata.meanPatchAreaSqum = patchdata.patches_area_sqmm * 1000^2 / length(bnds_large);
+%     patchdata.meanPatchAreaSqum = patchdata.patches_area_sqmm * 1000^2 / length(bnds_large);
     patchdata.patchimage_sub_sizethresh = patchimage_sub_size_thresh;
     patchdata.bnds_sub_sizethresh = bnds_small_image;
     patchdata.bnds_patches = bnds_large_image;
@@ -175,7 +178,7 @@ npixpatches = length(find(patchimage));
 patchdata.patches_area_sqmm = npixpatches  * [umPerPix(zoom,scope)]^2 / 1000^2;
 patchdata.fracAreaPatches = npixpatches / npixroi;
 patchdata.patchimage = patchimage;
-patchdata.nonpatchimage = patchdata.roi & ~patchdata.patchimage; 
+patchdata.nonpatchimage = roi & ~patchdata.patchimage; 
 
 %% output results
 patchdata.im = im;

@@ -1,11 +1,11 @@
  % compare intensity of projimage pixels in vs outside of patches and
  % perform permuation test
  %%% results = permutation_test_patches(patchFile, projFile, roiFile, baselineFile, zoom, scope, pars)
- % updated 2018/10/19 
+ % updated 2019/10/19 
  function results = permutation_test_patches(patchFile, projFile, roiFile, baselineFile, zoom, scope, pars)
  
  pars = vardefault('pars',struct);
- pars.npermutations = field_default(pars,'npermutations',10000); % number of permutations
+ pars.npermutations = field_default(pars,'npermutations',1000); % number of permutations
  pars.resample_pix = field_default(pars,'resample_pix',true); %%% resample pixels in proj image; set pixel area to force below
     % at epi scope x3.2, 1 pixel area == 3.84 squm.... area of a 60um-radius patch == 3600 squm
     pars.resampled_pix_area_squm = field_default(pars,'resampled_pix_area_squm',25); % area of a pixel in square microns after resampling
@@ -121,6 +121,8 @@ if pars.resample_pix
         interpatchimage = imresize(interpatchimage, resample_factor);
         results.interpatchimage_resampled = interpatchimage;
     end
+elseif ~pars.resample_pix
+    results.baselineimg = baselineimg;     
 end
 
 %% norm
